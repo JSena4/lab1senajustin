@@ -7,12 +7,12 @@
   <meta name="description" content="" />
 
   <!-- CALLS FOR THE ARCGIS API'S css file and JS library.-->
-  <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.25/"></script>
 
   <!--Adding the modules needed for a full screen map app -->
   <script>  
-    require(["esri/config", "esri/Map", "esri/views/MapView", "esri/widgets/BasemapGallery"], function(esriConfig, Map, MapView, BasemapGallery) {   
+    require(["esri/config", "esri/Map", "esri/views/MapView", "esri/widgets/BasemapGallery", "esri/widgets/Locate", "esri/widgets/Search"], function(esriConfig, Map, MapView, BasemapGallery, Locate, Search) {   
 
       esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurI4HYBmeR5gYg12zbsYuwSLcu8lOjEkj3KvlVR0A9Uqz_fjUEqKuTKpoR-g9bIyepTx-Ma3n3FdBbCemC09nIev9QHtp12VzBSAoPqqN_TDa_kMGuu0EVCpnFNUlKOV2MupBIW1bpt2Sdc9TdAXx0mPsT25baohTpTtLbaZ5FrrMqaoSCi-mskdNZ_JSceFBOgJD5v_Je9Z6JWjyyH0tSu0jh0SDn_8xBpJyESombDN0AT1_qVLtLC6s"
       const map = new Map({ 
@@ -24,6 +24,34 @@
         center: [-157.00, 20.5], // Longitude, latitude
         zoom: 7, // Zoom level
         container: "viewDiv" // Div element
+      });
+
+      // Specify the widget while adding to the view's UI
+      const basemapGallery = new BasemapGallery({
+        view: view
+      });
+
+      // Add the widget to the top-right corner of the view
+      view.ui.add(basemapGallery, {
+        position: "top-right"
+      });
+
+      const locate = new Locate({
+        view: view
+      });
+
+      // Add the widget to the top-right corner of the view
+      view.ui.add(locate, {
+        position: "top-left"
+      });
+
+      const searchWidget = new Search({
+        view: view
+      });
+
+      view.ui.add(searchWidget, {
+        position: "top-left",
+        index: 2
       });
 
     });  
