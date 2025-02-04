@@ -6,73 +6,214 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="" />
 
-  <!-- CALLS FOR THE ARCGIS API'S css file and JS library.-->
-  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+  <!--
+    Updated the ArcGIS API CSS file to use version 4.25.
+    This ensures compatibility with the JS library that we load next.
+  -->
+  <link rel="stylesheet" href="https://js.arcgis.com/4.25/esri/themes/light/main.css">
+  
+  <!--
+    Changed the ArcGIS API JavaScript library to match version 4.25.
+    Using consistent versions avoids potential incompatibilities.
+  -->
   <script src="https://js.arcgis.com/4.25/"></script>
 
-  <!--Adding the modules needed for a full screen map app -->
-  <script>  
-    require(["esri/config", "esri/Map", "esri/views/MapView", "esri/widgets/BasemapGallery", "esri/widgets/Locate", "esri/widgets/Search"], function(esriConfig, Map, MapView, BasemapGallery, Locate, Search) {   
+  <!--
+    Loading additional modules needed for our full screen map application.
+    Here we add modules for basemap configuration and advanced widgets.
+  -->
+  <script>
+    require([
+      "esri/config",              // Configuration module to set API key
+      "esri/Map",                 // Core Map module
+      "esri/views/MapView",       // Module to create the MapView for rendering the map
+      "esri/widgets/BasemapGallery", // Widget to let users select from different basemaps
+      "esri/widgets/Expand",      // Widget to wrap around the BasemapGallery for better UI placement
+      "esri/Basemap",             // Basemap module for creating custom basemaps
+      "esri/layers/TileLayer",    // Module for creating TileLayer basemaps from direct URLs
+      "esri/layers/VectorTileLayer", // Module for vector basemaps
+      "esri/widgets/Locate",      // Widget to find the user's location on the map
+      "esri/widgets/Search",      // Widget for geocoding and searching addresses/places
+      "esri/Graphic"              // Module to display graphics (used by the Locate widget)
+    ], function(
+      esriConfig, Map, MapView, BasemapGallery, Expand, Basemap, TileLayer, VectorTileLayer, Locate, Search, Graphic
+    ) {
 
-      esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurI4HYBmeR5gYg12zbsYuwSLcu8lOjEkj3KvlVR0A9Uqz_fjUEqKuTKpoR-g9bIyepTx-Ma3n3FdBbCemC09nIev9QHtp12VzBSAoPqqN_TDa_kMGuu0EVCpnFNUlKOV2MupBIW1bpt2Sdc9TdAXx0mPsT25baohTpTtLbaZ5FrrMqaoSCi-mskdNZ_JSceFBOgJD5v_Je9Z6JWjyyH0tSu0jh0SDn_8xBpJyESombDN0AT1_qVLtLC6s"
-      const map = new Map({ 
-        basemap: "streets" // Basemap layer service 
+      // Set the API key for ArcGIS services
+      //using my api key, some things seemed not to work on your, maybe you need to update your api key
+      esriConfig.apiKey = "AAPTxy8BH1VEsoebNVZXo8HurEyZXPNJfJ1fGvqr_JmmmCs914eZd0NqvVoeUNHzi7UZU7V8xbldHhuYQ26NmA3ALSUbc9AyiL39RQuCJVpfdYQBqkZiKQnugxqPmWnHDFZeJ8WJ8L9UHaLCw6u0Jsfslpc_DJz0B8YbeLIV6aYKOYJ3HmmGZlMitoBplUGlbAr1glgISLN8KQSz1p9xWJwJUhYiBhd6Xtgu3c3z3aoKQYYUZqd1JklZhEWU6-8UreIJAT1_oP2cXSnd";
+
+      // Create the map with an initial basemap.
+      // We'll override the basemap using our custom BasemapGallery later.
+      const map = new Map({
+        basemap: "streets" // Placeholder: the custom basemaps will be used in the gallery.
       });
 
+      // Create the MapView to render the map in the "viewDiv" container.
       const view = new MapView({
         map: map,
-        center: [-157.00, 20.5], // Longitude, latitude
-        zoom: 7, // Zoom level
-        container: "viewDiv" // Div element
+        center: [-157.00, 20.5], // Longitude, latitude for the view's center
+        zoom: 7,               // Initial zoom level
+        container: "viewDiv"   // The DOM element in which the map will be displayed
       });
 
-      // Specify the widget while adding to the view's UI
+      // -------------------------------
+      // Define custom Basemaps for the BasemapGallery
+      // -------------------------------
+
+      // Define the World Imagery basemap using a direct TileLayer URL.
+      const imagery = new Basemap({
+        baseLayers: [
+          new TileLayer({
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer" // Use direct REST URL for reliability
+          })
+        ],
+        title: "Imagery",
+        id: "imagery",
+        thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/10df2279f9684e4a9f6a7f08febac2a9/info/thumbnail/thumbnail1584118328864.jpeg"
+      });
+
+      // Define the Imagery Hybrid basemap by combining a TileLayer and a VectorTileLayer.
+      const imageryHybrid = new Basemap({
+        baseLayers: [
+          new TileLayer({
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+          }),
+          new VectorTileLayer({
+            portalItem: { 
+              id: "30d6b8271e1849cd9c3042060001f425"
+            }
+          })
+        ],
+        title: "Imagery Hybrid",
+        id: "imageryHybrid",
+        thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/86265e5a4bbb4187a59719cf134e0018/info/thumbnail/thumbnail1578325603377.jpeg"
+      });
+
+      // Define the Streets basemap using a direct TileLayer URL.
+      const streets = new Basemap({
+        baseLayers: [
+          new TileLayer({
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer" // Direct URL ensures proper loading
+          })
+        ],
+        title: "Streets",
+        id: "streets",
+        thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/55ebf90799fa4a3fa57562700a68c405/info/thumbnail/thumbnail1561650895690.jpeg?w=400"
+      });
+
+      // Define the Topographic basemap using a direct TileLayer URL.
+      const topographic = new Basemap({
+        baseLayers: [
+          new TileLayer({
+            url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+          })
+        ],
+        title: "Topographic",
+        id: "topographic",
+        thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/7dc6cea0b1764a1f9af2e679f642f0f5/info/thumbnail/Topographic_600x400_thumb.jpg?w=400"
+      });
+
+      // Define the Navigation basemap using a VectorTileLayer.
+      const navigation = new Basemap({
+        baseLayers: [
+          new VectorTileLayer({
+            url: "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer"
+          })
+        ],
+        title: "Navigation",
+        id: "navigation",
+        thumbnailUrl: "https://www.arcgis.com/sharing/rest/content/items/c50de463235e4161b206d000587af18b/info/thumbnail/thumbnail1561651358957.jpeg?w=400"
+      });
+
+      // -------------------------------
+      // Create and configure the BasemapGallery widget
+      // -------------------------------
+      // Pass the array of custom basemaps as the source for the widget.
       const basemapGallery = new BasemapGallery({
-        view: view
+        view: view,
+        source: [imagery, imageryHybrid, streets, topographic, navigation]  // Provide our custom basemaps here
       });
 
-      // Add the widget to the top-right corner of the view
-      view.ui.add(basemapGallery, {
-        position: "top-right"
+      // Optional: Check the loading status of each basemap
+      view.when(() => {
+        basemapGallery.source.basemaps.forEach(basemap => {
+          basemap.load().then(() => {
+            console.log(basemap.title + " loaded successfully");
+          }).catch(err => {
+            console.error("Failed to load basemap: " + basemap.title, err);
+          });
+        });
       });
 
-      const locate = new Locate({
-        view: view
+      // -------------------------------
+      // Create an Expand widget to house the BasemapGallery
+      // This widget collapses the gallery when not in use.
+      // -------------------------------
+      const bgExpand = new Expand({
+        view: view,
+        content: basemapGallery, // Place our BasemapGallery inside the Expand widget
+        expandIconClass: "esri-icon-basemap" // Set the icon for the expand button
       });
 
-      // Add the widget to the top-right corner of the view
-      view.ui.add(locate, {
-        position: "top-left"
-      });
+      // Add the Expand widget containing the BasemapGallery to the top-right of the view.
+      view.ui.add(bgExpand, "top-right");
 
+      // -------------------------------
+      // Add the Locate widget to enable location services.
+      // -------------------------------
+      const locateWidget = new Locate({
+        view: view,   // Binds the Locate widget to our map view
+        graphic: new Graphic({
+          symbol: {
+            type: "simple-marker",  // Use a simple marker symbol
+            style: "circle",       // Marker shape: circle
+            color: "blue",         // Marker color: blue
+            size: "12px",          // Marker size
+            outline: {             // Outline for the marker symbol
+              color: "white",
+              width: "2px"
+            }
+          }
+        })
+      });
+      // Place the Locate widget at the top-left corner of the view.
+      view.ui.add(locateWidget, "top-left");
+
+      // -------------------------------
+      // Add the Search widget for geocoding and address search.
+      // -------------------------------
       const searchWidget = new Search({
         view: view
       });
-
+      // Place the Search widget at the top-left corner, above the Locate widget.
       view.ui.add(searchWidget, {
         position: "top-left",
-        index: 2
+        index: 0
       });
 
     });  
-   </script>
+  </script>
 
-  <style>  
-    html,  
-    body,  
-    #viewDiv {  
-      padding: 0;  
-      margin: 0;  
-      height: 100%;  
-      width: 100%;  
-    }  
+  <!--
+    CSS to make the map full screen.
+    This eliminates any margin or padding and ensures the view fills the browser window.
+  -->
+  <style>
+    html,
+    body,
+    #viewDiv {
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    }
   </style> 
 
-
 </head>
-<body>
 
-  <!-- the div to display the map-->
+<body>
+  <!-- The container div where the map will be rendered -->
   <div id="viewDiv"></div>
 </body>
 </html>
